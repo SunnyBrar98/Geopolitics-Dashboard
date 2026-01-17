@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GEOPOLITICAL DASHBOARD</title>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.113/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.113/Build/Cesium/Cesium.js"></script>
     <style>
         * {
             margin: 0;
@@ -22,7 +24,6 @@
         .header {
             text-align: center;
             margin-bottom: 30px;
-            position: relative;
         }
 
         .header h1 {
@@ -107,147 +108,24 @@
 
         .map-display {
             width: 100%;
-            height: 500px;
+            height: 600px;
             background: #000;
             border: 1px solid #00ff41;
             position: relative;
-            overflow: hidden;
         }
 
-        .map-grid {
-            position: absolute;
+        #cesiumContainer {
             width: 100%;
             height: 100%;
-            background-image: 
-                linear-gradient(rgba(0, 255, 65, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 65, 0.1) 1px, transparent 1px);
-            background-size: 50px 50px;
-            pointer-events: none;
-            z-index: 1;
+            background: #000;
         }
 
-        .scanlines {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: repeating-linear-gradient(
-                0deg,
-                rgba(0, 255, 65, 0.05) 0px,
-                transparent 1px,
-                transparent 2px,
-                rgba(0, 255, 65, 0.05) 3px
-            );
-            pointer-events: none;
-            z-index: 2;
-        }
-
-        .corner-brackets {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 3;
-        }
-
-        .corner-brackets::before,
-        .corner-brackets::after {
-            content: '';
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            border: 3px solid #00ff41;
-        }
-
-        .corner-brackets::before {
-            top: 10px;
-            left: 10px;
-            border-right: none;
-            border-bottom: none;
-        }
-
-        .corner-brackets::after {
-            bottom: 10px;
-            right: 10px;
-            border-left: none;
-            border-top: none;
-        }
-
-        #worldMap {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            height: 90%;
-        }
-
-        .region {
-            fill: #000;
-            stroke: #00ff41;
-            stroke-width: 0.5;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .region:hover {
-            fill: rgba(0, 255, 65, 0.2);
-            stroke: #00ff41;
-            stroke-width: 1.5;
-            filter: drop-shadow(0 0 8px #00ff41);
-        }
-
-        .hotspot {
-            fill: #ff0000;
-            animation: pulse 2s infinite;
-            cursor: pointer;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-                r: 4;
-            }
-            50% {
-                opacity: 0.3;
-                r: 6;
-            }
-        }
-
-        .map-info-panel {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.95);
-            border: 2px solid #00ff41;
-            padding: 15px;
-            max-width: 300px;
-            z-index: 10;
+        .cesium-viewer-bottom {
             display: none;
         }
 
-        .map-info-panel.active {
-            display: block;
-        }
-
-        .info-title {
-            font-size: 16px;
-            margin-bottom: 10px;
-            color: #ffff00;
-            text-shadow: 0 0 5px #ffff00;
-        }
-
-        .info-content {
-            font-size: 12px;
-            line-height: 1.6;
-        }
-
-        .close-info {
-            position: absolute;
-            top: 5px;
-            right: 10px;
-            cursor: pointer;
-            font-size: 18px;
-            color: #ff0000;
+        .cesium-viewer-toolbar {
+            display: none;
         }
 
         .terminal-panel {
@@ -311,17 +189,12 @@
             cursor: pointer;
             letter-spacing: 2px;
             transition: all 0.3s ease;
-            position: relative;
         }
 
         .hud-button:hover {
             background: rgba(0, 255, 65, 0.1);
             box-shadow: 0 0 15px rgba(0, 255, 65, 0.5);
             text-shadow: 0 0 5px #00ff41;
-        }
-
-        .hud-button:active {
-            transform: scale(0.95);
         }
 
         .region-list {
@@ -335,7 +208,6 @@
             background: rgba(0, 255, 65, 0.03);
             cursor: pointer;
             transition: all 0.3s ease;
-            position: relative;
         }
 
         .region-item::before {
@@ -346,28 +218,7 @@
 
         .region-item:hover {
             background: rgba(0, 255, 65, 0.1);
-            border-color: #00ff41;
-            box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
             transform: translateX(5px);
-        }
-
-        .radar-circle {
-            position: absolute;
-            width: 60px;
-            height: 60px;
-            border: 2px solid #00ff41;
-            border-radius: 50%;
-            opacity: 0.3;
-        }
-
-        .radar-circle.top-right {
-            top: -30px;
-            right: -30px;
-        }
-
-        .radar-circle.bottom-left {
-            bottom: -30px;
-            left: -30px;
         }
     </style>
 </head>
@@ -378,7 +229,7 @@
         <div style="font-size: 12px; opacity: 0.7; letter-spacing: 2px;">REAL-TIME GLOBAL MONITORING SYSTEM</div>
     </div>
 
-    <div class="world-clocks" id="worldClocks">
+    <div class="world-clocks">
         <div class="clock-item">
             <div class="clock-city">NEW YORK</div>
             <div class="clock-time" id="clock-ny">--:--:--</div>
@@ -402,47 +253,13 @@
     </div>
 
     <div class="map-container">
-        <div class="radar-circle top-right"></div>
-        <div class="section-label">▶ TACTICAL MAP DISPLAY</div>
+        <div class="section-label">▶ TACTICAL GLOBE DISPLAY</div>
         <div class="map-display">
-            <div class="map-grid"></div>
-            <div class="scanlines"></div>
-            <div class="corner-brackets"></div>
-            
-            <svg id="worldMap" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg">
-    <style>
-        .region { fill: #1a1a1a; stroke: #00ff41; stroke-width: 1; cursor: pointer; transition: 0.3s; }
-        .region:hover { fill: #003300; stroke: #ccff00; stroke-width: 2; filter: drop-shadow(0 0 5px #00ff41); }
-    </style>
-
-    <path class="region" data-region="North America" d="M 50,70 L 250,70 L 300,150 L 200,250 L 80,180 Z" />
-    
-    <path class="region" data-region="South America" d="M 220,260 L 320,260 L 350,350 L 280,450 L 200,300 Z" />
-    
-    <path class="region" data-region="Europe" d="M 460,80 L 580,80 L 560,160 L 440,150 L 420,100 Z" />
-    
-    <path class="region" data-region="Africa" d="M 440,180 L 560,180 L 600,300 L 500,400 L 400,250 Z" />
-    
-    <path class="region" data-region="Russia" d="M 600,60 L 900,60 L 950,150 L 600,150 Z" />
-    
-    <path class="region" data-region="Middle East" d="M 570,170 L 650,170 L 650,220 L 580,220 Z" />
-
-    <path class="region" data-region="East Asia" d="M 660,160 L 850,160 L 820,280 L 660,250 Z" />
-
-    <path class="region" data-region="India" d="M 640,200 L 720,200 L 700,280 L 630,240 Z" />
-    
-    <path class="region" data-region="Australia" d="M 750,320 L 900,320 L 880,420 L 740,400 Z" />
-</svg>
-            <div class="map-info-panel" id="mapInfoPanel">
-                <span class="close-info" onclick="closeInfoPanel()">✕</span>
-                <div class="info-title" id="infoTitle">REGION</div>
-                <div class="info-content" id="infoContent">Select a region</div>
-            </div>
+            <div id="cesiumContainer"></div>
         </div>
     </div>
 
     <div class="terminal-panel">
-        <div class="radar-circle bottom-left"></div>
         <div class="terminal-header">
             <div class="section-label">▶ BREAKING NEWS FEED</div>
             <button class="hud-button" id="addNewsButton">LOAD NEWS</button>
@@ -476,7 +293,7 @@
     </div>
 
     <script>
-        // World Clock System - Updates every second
+        // World Clock System
         const clockZones = {
             'clock-ny': 'America/New_York',
             'clock-london': 'Europe/London',
@@ -485,29 +302,20 @@
             'clock-dubai': 'Asia/Dubai'
         };
 
-        // Store timezone data
         const timezoneData = {};
 
         async function initializeClocks() {
             for (const [elementId, timezone] of Object.entries(clockZones)) {
                 try {
                     const response = await fetch(`https://worldtimeapi.org/api/timezone/${timezone}`);
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     const data = await response.json();
-                    
-                    // Store timezone string for Intl.DateTimeFormat
                     timezoneData[elementId] = timezone;
                 } catch (error) {
                     console.error(`Failed to fetch ${timezone}:`, error.message);
                     timezoneData[elementId] = null;
                 }
             }
-            
-            // Start updating every second
             updateClocks();
             setInterval(updateClocks, 1000);
         }
@@ -516,9 +324,6 @@
             for (const [elementId, timezone] of Object.entries(timezoneData)) {
                 if (timezone) {
                     try {
-                        const now = new Date();
-                        
-                        // Use Intl.DateTimeFormat to get time in specific timezone
                         const formatter = new Intl.DateTimeFormat('en-US', {
                             timeZone: timezone,
                             hour: '2-digit',
@@ -526,9 +331,7 @@
                             second: '2-digit',
                             hour12: false
                         });
-                        
-                        const timeString = formatter.format(now);
-                        document.getElementById(elementId).textContent = timeString;
+                        document.getElementById(elementId).textContent = formatter.format(new Date());
                     } catch (error) {
                         document.getElementById(elementId).textContent = 'ERROR';
                     }
@@ -540,96 +343,57 @@
 
         initializeClocks();
 
-        // Interactive Map System
-        const regionData = {
-            'North America': {
-                description: 'Status: STABLE | Major Powers: USA, Canada, Mexico',
-                details: 'Border security operations ongoing. USMCA trade agreement active.'
-            },
-            'South America': {
-                description: 'Status: MODERATE | Key Nations: Brazil, Argentina, Colombia',
-                details: 'Political instability in Venezuela. Drug cartel activity in Colombia monitored.'
-            },
-            'Europe': {
-                description: 'Status: ELEVATED | NATO Alliance Active',
-                details: 'Eastern border tensions. Energy security concerns ongoing. EU coordination strong.'
-            },
-            'Africa': {
-                description: 'Status: CRITICAL | Multiple Conflict Zones',
-                details: 'Active conflicts in Sudan, Somalia, Ethiopia. Humanitarian crisis widespread.'
-            },
-            'Middle East': {
-                description: 'Status: CRITICAL | High Alert',
-                details: 'Active warfare in Gaza, Syria, Yemen. Diplomatic efforts ongoing. Regional tensions high.'
-            },
-            'Russia': {
-                description: 'Status: HOSTILE | International Sanctions Active',
-                details: 'Engaged in Ukraine conflict. NATO relations deteriorated. Economic isolation increasing.'
-            },
-            'China': {
-                description: 'Status: MONITORING | Regional Power',
-                details: 'Taiwan strait tensions. South China Sea territorial disputes. Economic influence expanding.'
-            },
-            'India': {
-                description: 'Status: STABLE | Emerging Power',
-                details: 'Border tensions with China. Kashmir situation monitored. Regional influence growing.'
-            },
-            'Southeast Asia': {
-                description: 'Status: STABLE | Economic Growth Region',
-                details: 'ASEAN cooperation strong. Minimal regional conflicts. Trade hub development.'
-            },
-            'Australia': {
-                description: 'Status: STABLE | Pacific Security Partner',
-                details: 'AUKUS alliance member. Regional stability operations. Indo-Pacific focus.'
-            },
-            'Japan': {
-                description: 'Status: STABLE | US Alliance Strong',
-                details: 'Defense cooperation active. North Korea monitoring ongoing. Regional security key player.'
+        // Initialize Cesium Globe (after page loads)
+        window.addEventListener('load', function() {
+            Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlOGEyMzExMC0zMzgyLTRjNDEtYTRjNi01NjQ2NzQ5ZGMwNDciLCJpZCI6MzgwMDAxLCJpYXQiOjE3Njg2NDAxMzF9.lyqvAo9b1Qj7x4nmoBDvV0adQTjj5kGbcKA-5felltg';
+
+            const viewer = new Cesium.Viewer('cesiumContainer', {
+            animation: false,
+            timeline: false,
+            baseLayerPicker: false,
+            geocoder: false,
+            homeButton: false,
+            sceneModePicker: false,
+            navigationHelpButton: false,
+            fullscreenButton: false
+        });
+
+            viewer.scene.globe.baseColor = Cesium.Color.BLACK;
+            viewer.scene.backgroundColor = Cesium.Color.BLACK;
+
+            function addConflictMarker(lat, lon, name, severity) {
+                const color = severity === 'critical' ? Cesium.Color.RED :
+                              severity === 'elevated' ? Cesium.Color.YELLOW :
+                              Cesium.Color.GREEN;
+                
+                viewer.entities.add({
+                    position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                    point: {
+                        pixelSize: 10,
+                        color: color,
+                        outlineColor: Cesium.Color.WHITE,
+                        outlineWidth: 2
+                    },
+                    label: {
+                        text: name,
+                        font: '14px Courier New',
+                        fillColor: Cesium.Color.fromCssColorString('#00ff41'),
+                        outlineColor: Cesium.Color.BLACK,
+                        outlineWidth: 2,
+                        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                        pixelOffset: new Cesium.Cartesian2(0, -20)
+                    }
+                });
             }
-        };
 
-        const regions = document.querySelectorAll('.region');
-        const infoPanel = document.getElementById('mapInfoPanel');
-        const infoTitle = document.getElementById('infoTitle');
-        const infoContent = document.getElementById('infoContent');
-
-        regions.forEach(region => {
-            region.addEventListener('click', function() {
-                const regionName = this.dataset.region;
-                const data = regionData[regionName];
-                
-                infoTitle.textContent = `◢ ${regionName.toUpperCase()} ◣`;
-                infoContent.innerHTML = `
-                    <div style="margin-bottom: 10px;">${data.description}</div>
-                    <div style="border-top: 1px solid rgba(0,255,65,0.3); padding-top: 10px;">
-                        ${data.details}
-                    </div>
-                `;
-                
-                infoPanel.classList.add('active');
-            });
+            addConflictMarker(50.45, 30.52, 'UKRAINE', 'critical');
+            addConflictMarker(31.50, 34.47, 'GAZA', 'critical');
+            addConflictMarker(15.55, 32.53, 'SUDAN', 'elevated');
+            addConflictMarker(33.31, 44.36, 'IRAQ', 'elevated');
+            addConflictMarker(15.35, 44.19, 'YEMEN', 'critical');
         });
 
-        // Hotspot clicks
-        const hotspots = document.querySelectorAll('.hotspot');
-        hotspots.forEach(spot => {
-            spot.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const conflict = this.dataset.conflict;
-                infoTitle.textContent = `◢ CONFLICT: ${conflict.toUpperCase()} ◣`;
-                infoContent.innerHTML = `
-                    <div style="color: #ff0000; margin-bottom: 10px;">⚠ ACTIVE CONFLICT ZONE</div>
-                    <div>Real-time monitoring active. Situation volatile. Humanitarian concerns present.</div>
-                `;
-                infoPanel.classList.add('active');
-            });
-        });
-
-        function closeInfoPanel() {
-            infoPanel.classList.remove('active');
-        }
-
-        // Breaking News System
+        // News System
         const newsStories = [
             "Diplomatic negotiations scheduled in Geneva - multiple parties attending",
             "Trade agreement finalized between major economic powers",
@@ -640,13 +404,9 @@
         ];
 
         let newsIndex = 0;
-        const newsContainer = document.getElementById('newsContainer');
-        const addNewsButton = document.getElementById('addNewsButton');
-
-        addNewsButton.addEventListener('click', function() {
-            if (newsIndex === 0) {
-                newsContainer.innerHTML = '';
-            }
+        document.getElementById('addNewsButton').addEventListener('click', function() {
+            const newsContainer = document.getElementById('newsContainer');
+            if (newsIndex === 0) newsContainer.innerHTML = '';
             
             if (newsIndex < newsStories.length) {
                 const newsItem = document.createElement('div');
@@ -656,63 +416,36 @@
                 newsIndex++;
                 
                 if (newsIndex === newsStories.length) {
-                    addNewsButton.textContent = 'END OF FEED';
-                    addNewsButton.disabled = true;
+                    this.textContent = 'END OF FEED';
+                    this.disabled = true;
                 }
             }
         });
 
-        // Region Selection System
-        const regionItems = document.querySelectorAll('.region-item');
-        const conflictDisplay = document.getElementById('conflictDisplay');
-
+        // Region System
         const conflictData = {
-            'North America': [
-                'US/Mexico Border: Immigration surge - enhanced security measures',
-                'Canada: Tensions with China over detained citizens',
-                'Mexico: Cartel violence in northern states - military operations ongoing'
-            ],
-            'South America': [
-                'Colombia: Drug cartel operations - government offensive continuing',
-                'Venezuela: Political crisis - international intervention debated',
-                'Brazil: Amazon deforestation - environmental concerns escalating'
-            ],
-            'Middle East': [
-                'Syria: Ongoing civil conflict - multiple factions engaged',
-                'Yemen: Humanitarian crisis - ceasefire negotiations underway',
-                'Israel/Palestine: Border tensions elevated - Gaza situation critical'
-            ],
-            'East Asia': [
-                'Taiwan Strait: Naval exercises reported - tensions elevated',
-                'Korean Peninsula: Diplomatic talks scheduled - denuclearization focus',
-                'South China Sea: Territorial disputes ongoing - naval presence increased'
-            ],
-            'Europe': [
-                'Ukraine: Active conflict zone - peace talks in progress',
-                'Balkans: Political tensions monitored - ethnic divisions present',
-                'Belarus: Border situation under observation - migration crisis'
-            ],
-            'Africa': [
-                'Sudan: Internal conflict - humanitarian response active',
-                'Somalia: Security operations continuing - Al-Shabaab threat remains',
-                'Ethiopia: Ceasefire agreement holding - reconstruction beginning'
-            ]
+            'North America': ['US/Mexico Border: Immigration surge', 'Canada: China tensions', 'Mexico: Cartel violence'],
+            'South America': ['Colombia: Drug operations', 'Venezuela: Political crisis', 'Brazil: Deforestation'],
+            'Middle East': ['Syria: Civil conflict', 'Yemen: Humanitarian crisis', 'Gaza: Border tensions'],
+            'East Asia': ['Taiwan Strait: Naval exercises', 'Korean Peninsula: Diplomatic talks', 'South China Sea disputes'],
+            'Europe': ['Ukraine: Active conflict', 'Balkans: Political tensions', 'Belarus: Migration crisis'],
+            'Africa': ['Sudan: Internal conflict', 'Somalia: Al-Shabaab threat', 'Ethiopia: Ceasefire holding']
         };
 
-        regionItems.forEach(item => {
+        document.querySelectorAll('.region-item').forEach(item => {
             item.addEventListener('click', function() {
                 const region = this.dataset.region;
-                const conflicts = conflictData[region];
+                const conflictDisplay = document.getElementById('conflictDisplay');
                 
-                regionItems.forEach(r => r.style.borderColor = '#00ff41');
+                document.querySelectorAll('.region-item').forEach(r => r.style.borderColor = '#00ff41');
                 this.style.borderColor = '#ffff00';
                 
                 conflictDisplay.innerHTML = '';
-                conflicts.forEach(conflict => {
-                    const conflictItem = document.createElement('div');
-                    conflictItem.className = 'conflict-item';
-                    conflictItem.innerHTML = `> ${conflict}`;
-                    conflictDisplay.appendChild(conflictItem);
+                conflictData[region].forEach(conflict => {
+                    const div = document.createElement('div');
+                    div.className = 'conflict-item';
+                    div.innerHTML = `> ${conflict}`;
+                    conflictDisplay.appendChild(div);
                 });
             });
         });

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEOPOLITICAL DASHBOARD</title>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.113/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.113/Build/Cesium/Cesium.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000000;
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            letter-spacing: 4px;
+            text-shadow: 0 0 10px #00ff41;
+            margin-bottom: 5px;
+        }
+
+        .header-line {
+            height: 2px;
+            background: #00ff41;
+            box-shadow: 0 0 5px #00ff41;
+            margin: 10px auto;
+            width: 80%;
+        }
+
+        .world-clocks {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .clock-item {
+            background: rgba(0, 255, 65, 0.05);
+            border: 2px solid #00ff41;
+            padding: 15px;
+            position: relative;
+            text-align: center;
+        }
+
+        .clock-item::before,
+        .clock-item::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border: 2px solid #00ff41;
+        }
+
+        .clock-item::before {
+            top: -2px;
+            left: -2px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .clock-item::after {
+            bottom: -2px;
+            right: -2px;
+            border-left: none;
+            border-top: none;
+        }
+
+        .clock-city {
+            font-size: 12px;
+            margin-bottom: 8px;
+            opacity: 0.7;
+        }
+
+        .clock-time {
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 8px #00ff41;
+        }
+
+        .map-container {
+            border: 2px solid #00ff41;
+            padding: 20px;
+            margin-bottom: 30px;
+            position: relative;
+            background: rgba(0, 255, 65, 0.02);
+        }
+
+        .section-label {
+            font-size: 14px;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px #00ff41;
+        }
+
+        .map-display {
+            width: 100%;
+            height: 600px;
+            background: #000;
+            border: 1px solid #00ff41;
+            position: relative;
+        }
+
+        #cesiumContainer {
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+
+        .cesium-viewer-bottom {
+            display: none;
+        }
+
+        .cesium-viewer-toolbar {
+            display: none;
+        }
+
+        .terminal-panel {
+            border: 2px solid #00ff41;
+            padding: 20px;
+            margin-bottom: 30px;
+            position: relative;
+            background: rgba(0, 255, 65, 0.02);
+        }
+
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 255, 65, 0.3);
+        }
+
+        .terminal-content {
+            min-height: 150px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .terminal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .terminal-content::-webkit-scrollbar-track {
+            background: rgba(0, 255, 65, 0.1);
+        }
+
+        .terminal-content::-webkit-scrollbar-thumb {
+            background: #00ff41;
+        }
+
+        .news-item,
+        .conflict-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 3px solid #00ff41;
+            background: rgba(0, 255, 65, 0.05);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .news-item::before {
+            content: '> ';
+            color: #00ff41;
+            font-weight: bold;
+        }
+
+        .hud-button {
+            background: transparent;
+            border: 2px solid #00ff41;
+            color: #00ff41;
+            padding: 10px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .hud-button:hover {
+            background: rgba(0, 255, 65, 0.1);
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.5);
+            text-shadow: 0 0 5px #00ff41;
+        }
+
+        .region-list {
+            list-style: none;
+        }
+
+        .region-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid #00ff41;
+            background: rgba(0, 255, 65, 0.03);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .region-item::before {
+            content: '■';
+            margin-right: 10px;
+            color: #00ff41;
+        }
+
+        .region-item:hover {
+            background: rgba(0, 255, 65, 0.1);
+            transform: translateX(5px);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>◢ GEOPOLITICAL DASHBOARD ◣</h1>
+        <div class="header-line"></div>
+        <div style="font-size: 12px; opacity: 0.7; letter-spacing: 2px;">REAL-TIME GLOBAL MONITORING SYSTEM</div>
+    </div>
+
+    <div class="world-clocks">
+        <div class="clock-item">
+            <div class="clock-city">NEW YORK</div>
+            <div class="clock-time" id="clock-ny">--:--:--</div>
+        </div>
+        <div class="clock-item">
+            <div class="clock-city">LONDON</div>
+            <div class="clock-time" id="clock-london">--:--:--</div>
+        </div>
+        <div class="clock-item">
+            <div class="clock-city">KYIV</div>
+            <div class="clock-time" id="clock-kyiv">--:--:--</div>
+        </div>
+        <div class="clock-item">
+            <div class="clock-city">TOKYO</div>
+            <div class="clock-time" id="clock-tokyo">--:--:--</div>
+        </div>
+        <div class="clock-item">
+            <div class="clock-city">DUBAI</div>
+            <div class="clock-time" id="clock-dubai">--:--:--</div>
+        </div>
+    </div>
+
+    <div class="map-container">
+        <div class="section-label">▶ TACTICAL GLOBE DISPLAY</div>
+        <div class="map-display">
+            <div id="cesiumContainer"></div>
+        </div>
+    </div>
+
+    <div class="terminal-panel">
+        <div class="terminal-header">
+            <div class="section-label">▶ BREAKING NEWS FEED</div>
+            <button class="hud-button" id="addNewsButton">LOAD NEWS</button>
+        </div>
+        <div class="terminal-content" id="newsContainer">
+            <div style="opacity: 0.5; padding: 20px; text-align: center;">
+                [ AWAITING DATA FEED ]
+            </div>
+        </div>
+    </div>
+
+    <div class="terminal-panel">
+        <div class="section-label">▶ REGIONAL SECTORS</div>
+        <ul class="region-list">
+            <li class="region-item" data-region="North America">NORTH AMERICA</li>
+            <li class="region-item" data-region="South America">SOUTH AMERICA</li>
+            <li class="region-item" data-region="Middle East">MIDDLE EAST</li>
+            <li class="region-item" data-region="East Asia">EAST ASIA</li>
+            <li class="region-item" data-region="Europe">EUROPE</li>
+            <li class="region-item" data-region="Africa">AFRICA</li>
+        </ul>
+    </div>
+
+    <div class="terminal-panel">
+        <div class="section-label">▶ ACTIVE CONFLICT ZONES</div>
+        <div class="terminal-content" id="conflictDisplay">
+            <div style="opacity: 0.5; padding: 20px; text-align: center;">
+                [ SELECT REGION TO VIEW CONFLICTS ]
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // World Clock System
+        const clockZones = {
+            'clock-ny': 'America/New_York',
+            'clock-london': 'Europe/London',
+            'clock-kyiv': 'Europe/Kiev',
+            'clock-tokyo': 'Asia/Tokyo',
+            'clock-dubai': 'Asia/Dubai'
+        };
+
+        const timezoneData = {};
+
+        async function initializeClocks() {
+            for (const [elementId, timezone] of Object.entries(clockZones)) {
+                try {
+                    const response = await fetch(`https://worldtimeapi.org/api/timezone/${timezone}`);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const data = await response.json();
+                    timezoneData[elementId] = timezone;
+                } catch (error) {
+                    console.error(`Failed to fetch ${timezone}:`, error.message);
+                    timezoneData[elementId] = null;
+                }
+            }
+            updateClocks();
+            setInterval(updateClocks, 1000);
+        }
+
+        function updateClocks() {
+            for (const [elementId, timezone] of Object.entries(timezoneData)) {
+                if (timezone) {
+                    try {
+                        const formatter = new Intl.DateTimeFormat('en-US', {
+                            timeZone: timezone,
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                            hour12: false
+                        });
+                        document.getElementById(elementId).textContent = formatter.format(new Date());
+                    } catch (error) {
+                        document.getElementById(elementId).textContent = 'ERROR';
+                    }
+                } else {
+                    document.getElementById(elementId).textContent = '--:--:--';
+                }
+            }
+        }
+
+        initializeClocks();
+
+        // Initialize Cesium Globe (after page loads)
+        window.addEventListener('load', function() {
+            Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlOGEyMzExMC0zMzgyLTRjNDEtYTRjNi01NjQ2NzQ5ZGMwNDciLCJpZCI6MzgwMDAxLCJpYXQiOjE3Njg2NDAxMzF9.lyqvAo9b1Qj7x4nmoBDvV0adQTjj5kGbcKA-5felltg';
+
+            const viewer = new Cesium.Viewer('cesiumContainer', {
+            animation: false,
+            timeline: false,
+            baseLayerPicker: false,
+            geocoder: false,
+            homeButton: false,
+            sceneModePicker: false,
+            navigationHelpButton: false,
+            fullscreenButton: false
+        });
+
+            viewer.scene.globe.baseColor = Cesium.Color.BLACK;
+            viewer.scene.backgroundColor = Cesium.Color.BLACK;
+
+            function addConflictMarker(lat, lon, name, severity) {
+                const color = severity === 'critical' ? Cesium.Color.RED :
+                              severity === 'elevated' ? Cesium.Color.YELLOW :
+                              Cesium.Color.GREEN;
+                
+                viewer.entities.add({
+                    position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                    point: {
+                        pixelSize: 10,
+                        color: color,
+                        outlineColor: Cesium.Color.WHITE,
+                        outlineWidth: 2
+                    },
+                    label: {
+                        text: name,
+                        font: '14px Courier New',
+                        fillColor: Cesium.Color.fromCssColorString('#00ff41'),
+                        outlineColor: Cesium.Color.BLACK,
+                        outlineWidth: 2,
+                        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                        pixelOffset: new Cesium.Cartesian2(0, -20)
+                    }
+                });
+            }
+
+            addConflictMarker(50.45, 30.52, 'UKRAINE', 'critical');
+            addConflictMarker(31.50, 34.47, 'GAZA', 'critical');
+            addConflictMarker(15.55, 32.53, 'SUDAN', 'elevated');
+            addConflictMarker(33.31, 44.36, 'IRAQ', 'elevated');
+            addConflictMarker(15.35, 44.19, 'YEMEN', 'critical');
+        });
+
+        // News System
+        const newsStories = [
+            "Diplomatic negotiations scheduled in Geneva - multiple parties attending",
+            "Trade agreement finalized between major economic powers",
+            "Election results announced - opposition party claims victory",
+            "UN Security Council convenes emergency session",
+            "Humanitarian corridor established in conflict zone",
+            "International sanctions imposed on regime"
+        ];
+
+        let newsIndex = 0;
+        document.getElementById('addNewsButton').addEventListener('click', function() {
+            const newsContainer = document.getElementById('newsContainer');
+            if (newsIndex === 0) newsContainer.innerHTML = '';
+            
+            if (newsIndex < newsStories.length) {
+                const newsItem = document.createElement('div');
+                newsItem.className = 'news-item';
+                newsItem.textContent = newsStories[newsIndex];
+                newsContainer.appendChild(newsItem);
+                newsIndex++;
+                
+                if (newsIndex === newsStories.length) {
+                    this.textContent = 'END OF FEED';
+                    this.disabled = true;
+                }
+            }
+        });
+
+        // Region System
+        const conflictData = {
+            'North America': ['US/Mexico Border: Immigration surge', 'Canada: China tensions', 'Mexico: Cartel violence'],
+            'South America': ['Colombia: Drug operations', 'Venezuela: Political crisis', 'Brazil: Deforestation'],
+            'Middle East': ['Syria: Civil conflict', 'Yemen: Humanitarian crisis', 'Gaza: Border tensions'],
+            'East Asia': ['Taiwan Strait: Naval exercises', 'Korean Peninsula: Diplomatic talks', 'South China Sea disputes'],
+            'Europe': ['Ukraine: Active conflict', 'Balkans: Political tensions', 'Belarus: Migration crisis'],
+            'Africa': ['Sudan: Internal conflict', 'Somalia: Al-Shabaab threat', 'Ethiopia: Ceasefire holding']
+        };
+
+        document.querySelectorAll('.region-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const region = this.dataset.region;
+                const conflictDisplay = document.getElementById('conflictDisplay');
+                
+                document.querySelectorAll('.region-item').forEach(r => r.style.borderColor = '#00ff41');
+                this.style.borderColor = '#ffff00';
+                
+                conflictDisplay.innerHTML = '';
+                conflictData[region].forEach(conflict => {
+                    const div = document.createElement('div');
+                    div.className = 'conflict-item';
+                    div.innerHTML = `> ${conflict}`;
+                    conflictDisplay.appendChild(div);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

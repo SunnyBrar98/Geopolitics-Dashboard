@@ -171,12 +171,30 @@
             background: rgba(0, 255, 65, 0.05);
             font-size: 14px;
             line-height: 1.6;
+            cursor: pointer;
+            transition: all 0.2s ease;
+
         }
+        .news-item:hover {
+            background: rgba(0, 255, 65, 0.1);
+            transform: translateX(3px);
+        }
+        
 
         .news-item::before {
             content: '> ';
             color: #00ff41;
             font-weight: bold;
+        }
+
+        .news-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .news-date {
+            font-size: 11px;
+            opacity: 0.6;
         }
 
         .hud-button {
@@ -447,4 +465,5 @@
         });
     </script>
 </body>
+
 </html>

@@ -147,7 +147,7 @@
 
         .terminal-content {
             min-height: 150px;
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
         }
 
@@ -261,12 +261,12 @@
 
     <div class="terminal-panel">
         <div class="terminal-header">
-            <div class="section-label">▶ BREAKING NEWS FEED</div>
-            <button class="hud-button" id="addNewsButton">LOAD NEWS</button>
+            <div class="section-label">▶LIVE NEWS FEED</div>
+            <button class="hud-button" id="refreshNewsButton">REFRESH</button>
         </div>
         <div class="terminal-content" id="newsContainer">
             <div style="opacity: 0.5; padding: 20px; text-align: center;">
-                [ AWAITING DATA FEED ]
+                [ LOADING NEWS FEED... ]
             </div>
         </div>
     </div>
@@ -389,35 +389,79 @@
 
         });
 
-        // News System
-        const newsStories = [
-            "Diplomatic negotiations scheduled in Geneva - multiple parties attending",
-            "Trade agreement finalized between major economic powers",
-            "Election results announced - opposition party claims victory",
-            "UN Security Council convenes emergency session",
-            "Humanitarian corridor established in conflict zone",
-            "International sanctions imposed on regime"
-        ];
+       // RSS News Feed System
+const RSS_URL = 'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fgeopoliticalmatters.com%2Ffeed%2F';
+const newsContainer = document.getElementById('newsContainer');
+const refreshButton = document.getElementById('refreshNewsButton');
 
-        let newsIndex = 0;
-        document.getElementById('addNewsButton').addEventListener('click', function() {
-            const newsContainer = document.getElementById('newsContainer');
-            if (newsIndex === 0) newsContainer.innerHTML = '';
+async function loadNews() {
+    newsContainer.innerHTML = '<div style="opacity: 0.5; padding: 20px; text-align: center;">[ LOADING... ]</div>';
+    
+    try {
+        const response = await fetch(RSS_URL);
+        if (!response.ok) throw new Error('Network response failed');
+        
+        const data = await response.json();
+        
+        if (data.status === 'ok' && data.items && data.items.length > 0) {
+            newsContainer.innerHTML = '';
             
-            if (newsIndex < newsStories.length) {
+            // Display up to 15 articles
+            data.items.slice(0, 15).forEach(item => {
                 const newsItem = document.createElement('div');
                 newsItem.className = 'news-item';
-                newsItem.textContent = newsStories[newsIndex];
-                newsContainer.appendChild(newsItem);
-                newsIndex++;
                 
-                if (newsIndex === newsStories.length) {
-                    this.textContent = 'END OF FEED';
-                    this.disabled = true;
-                }
-            }
-        });
+                const date = new Date(item.pubDate);
+                const timeAgo = getTimeAgo(date);
+                
+                newsItem.innerHTML = `
+                    <div class="news-title">${item.title}</div>
+                    <div class="news-date">${timeAgo}</div>
+                `;
+                
+                newsItem.addEventListener('click', () => {
+                    window.open(item.link, '_blank');
+                });
+                
+                newsContainer.appendChild(newsItem);
+            });
+        } else {
+            newsContainer.innerHTML = '<div style="opacity: 0.5; padding: 20px; text-align: center;">[ NO NEWS AVAILABLE ]</div>';
+        }
+    } catch (error) {
+        console.error('Error loading news:', error);
+        newsContainer.innerHTML = '<div style="opacity: 0.5; padding: 20px; text-align: center;">[ ERROR LOADING NEWS ]</div>';
+    }
+}
 
+function getTimeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    const intervals = {
+        year: 31536000,
+        month: 2592000,
+        week: 604800,
+        day: 86400,
+        hour: 3600,
+        minute: 60
+    };
+    
+    for (const [unit, secondsInUnit] of Object.entries(intervals)) {
+        const interval = Math.floor(seconds / secondsInUnit);
+        if (interval >= 1) {
+            return `${interval} ${unit}${interval !== 1 ? 's' : ''} ago`;
+        }
+    }
+    return 'just now';
+}
+
+// Load news on page load and refresh button
+loadNews();
+refreshButton.addEventListener('click', loadNews);
+
+// Auto-refresh every 10 minutes
+setInterval(loadNews, 600000);
+
+    
         // Region System
         const conflictData = {
             'North America': ['US/Mexico Border: Immigration surge', 'Canada: China tensions', 'Mexico: Cartel violence'],
@@ -447,4 +491,5 @@
         });
     </script>
 </body>
+
 </html>

@@ -278,7 +278,7 @@
 
     <div class="terminal-panel">
         <div class="terminal-header">
-            <div class="section-label">▶LIVE NEWS FEED</div>
+            <div class="section-label">▶America First Feed</div>
             <button class="hud-button" id="refreshNewsButton">REFRESH</button>
         </div>
         <div class="terminal-content" id="newsContainer">
@@ -407,7 +407,7 @@
         });
 
        // RSS News Feed System
-const RSS_URL = 'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fgeopoliticalmatters.com%2Ffeed%2F';
+const RSS_URL = 'https://rss-bridge.org/bridge01/?action=display&bridge=TelegramBridge&username=nickjfuentes&format=Json';
 const newsContainer = document.getElementById('newsContainer');
 const refreshButton = document.getElementById('refreshNewsButton');
 
@@ -510,4 +510,5 @@ setInterval(loadNews, 600000);
 </body>
 
 </html>
+
 
